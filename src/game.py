@@ -4,22 +4,21 @@ import time
 
 from blessed import Terminal
 from colorama import Fore, Style
-from constants import AI_TOKEN, MAXIMUM_TOKEN, HUMAN_TOKEN
+from constants import AI_TOKEN, COLUMN_COUNT, HUMAN_TOKEN, MAXIMUM_TOKEN, ROW_COUNT
 from functions import (
-    create_board,
-    drop_piece,
+    drop_token,
     get_next_open_row,
-    is_valid_location,
+    is_slot_availabe,
+    is_winner,
     minimax,
-    print_board,
+    print_wall,
     total_points,
-    winning_move,
 )
 
 if __name__ == "__main__":
     # Main game loop
-    board = create_board()
-    print_board(board)
+    board = [[0 for _ in range(COLUMN_COUNT)] for _ in range(ROW_COUNT)]
+    print_wall(board)
     game_over = False
     turn = random.choice([HUMAN_TOKEN, AI_TOKEN])
 
@@ -89,64 +88,64 @@ if __name__ == "__main__":
         if turn == HUMAN_TOKEN and game_mode == "1":
             col = int(input("Joueur 1, fait ton choix entre (1-12): ")) - 1
 
-            if is_valid_location(board, col):
+            if is_slot_availabe(board, col):
                 row = get_next_open_row(board, col)
-                drop_piece(board, row, col, HUMAN_TOKEN)
+                drop_token(board, row, col, HUMAN_TOKEN)
 
-                if winning_move(board, HUMAN_TOKEN):
+                if is_winner(board, HUMAN_TOKEN):
                     print(Fore.CYAN + "Joueur 1 wins!" + Style.RESET_ALL)
                     game_over = True
 
                 turn = AI_TOKEN
-                print_board(board)
+                print_wall(board)
 
         # AI Player input
         elif turn == AI_TOKEN and not game_over and game_mode == "1":
             col, _ = minimax(board, 4, -math.inf, math.inf, True)
 
-            if is_valid_location(board, col):
+            if is_slot_availabe(board, col):
                 row = get_next_open_row(board, col)
-                drop_piece(board, row, col, AI_TOKEN)
+                drop_token(board, row, col, AI_TOKEN)
 
-                if winning_move(board, AI_TOKEN):
+                if is_winner(board, AI_TOKEN):
                     print(Fore.MAGENTA + "AI wins!" + Style.RESET_ALL)
                     game_over = True
 
                 turn = HUMAN_TOKEN if game_mode == "1" else AI_TOKEN
-                print_board(board)
+                print_wall(board)
 
         elif game_mode == "2":
             if turn == HUMAN_TOKEN:  # IA2 input
                 col, _ = minimax(board, 4, -math.inf, math.inf, True)
 
-                if is_valid_location(board, col):
+                if is_slot_availabe(board, col):
                     row = get_next_open_row(board, col)
-                    drop_piece(board, row, col, HUMAN_TOKEN)
+                    drop_token(board, row, col, HUMAN_TOKEN)
 
-                    if winning_move(board, HUMAN_TOKEN):
+                    if is_winner(board, HUMAN_TOKEN):
                         print(Fore.CYAN + "AI 2 wins!" + Style.RESET_ALL)
                         game_over = True
 
                     turn = AI_TOKEN
-                    print_board(board)
+                    print_wall(board)
                     print(
                         Fore.CYAN + "IA2 a joué la colonne :" + Style.RESET_ALL,
                         col + 1,
                     )
 
             elif turn == AI_TOKEN and not game_over:  # AI1 Player input
-                col, _ = minimax(board, 1, -math.inf, math.inf, True)
+                col, _ = minimax(board, 4, -math.inf, math.inf, True)
 
-                if is_valid_location(board, col):
+                if is_slot_availabe(board, col):
                     row = get_next_open_row(board, col)
-                    drop_piece(board, row, col, AI_TOKEN)
+                    drop_token(board, row, col, AI_TOKEN)
 
-                    if winning_move(board, AI_TOKEN):
+                    if is_winner(board, AI_TOKEN):
                         print(Fore.MAGENTA + "AI 1 wins!" + Style.RESET_ALL)
                         game_over = True
 
                     turn = HUMAN_TOKEN
-                    print_board(board)
+                    print_wall(board)
                     print(
                         Fore.MAGENTA + "IA1 a joué la colonne :" + Style.RESET_ALL,
                         col + 1,

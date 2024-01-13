@@ -1,3 +1,4 @@
+import copy
 import math
 import random
 
@@ -11,58 +12,48 @@ from constants import (
     SCORE_2,
     SCORE_3,
     SCORE_4,
-    WINDOW_LENGTH,
+    WALL_LENGTH,
 )
 
 
-def create_board() -> list:
-    """Create a 2D array of zeros.
-
-    Returns
-    -------
-        list: 2D array of zeros
-    """
-    return [[0 for _ in range(COLUMN_COUNT)] for _ in range(ROW_COUNT)]
-
-
-def drop_piece(board: list, row: int, col: int, piece: int) -> None:
-    """Drop a piece in the board at the specified location.
+def total_points(wall: list) -> int:
+    """Get the total points of the wall.
 
     Args:
     ----
-    board (list): 2D array of zeros
+    wall (list): 2D array of zeros
+
+    Returns:
+    -------
+    int: total points of the wall
+    """
+    return sum(cell in (HUMAN_TOKEN, AI_TOKEN) for row in wall for cell in row)
+
+
+def drop_token(wall: list, row: int, col: int, token: int) -> list:
+    """Drop a token in the wall at the specified location.
+
+    Args:
+    ----
+    wall (list): 2D array of zeros
     row (int): row index
     col (int): column index
-    piece (int): piece to drop
+    token (int): token to drop
 
     Returns:
     -------
-    None
+    list: updated wall
     """
-    board[row][col] = piece
+    wall[row][col] = token
+    return wall
 
 
-def is_valid_location(board: list, col: int) -> bool:
-    """Check if a piece can be dropped in the specified column.
-
-    Args:
-    ----
-    board (list): 2D array of zeros
-    col (int): column index
-
-    Returns:
-    -------
-    bool: True if the piece can be dropped, False otherwise
-    """
-    return board[ROW_COUNT - 1][col] == 0
-
-
-def get_next_open_row(board: list, col: int) -> int:
+def get_next_open_row(wall: list, col: int) -> int:
     """Get the next open row in the specified column.
 
     Args:
     ----
-    board (list): 2D array of zeros
+    wall (list): 2D array of zeros
     col (int): column index
 
     Returns:
@@ -70,175 +61,190 @@ def get_next_open_row(board: list, col: int) -> int:
     int: index of the next open row
     """
     for r in range(ROW_COUNT):
-        if board[r][col] == 0:
+        if wall[r][col] == 0:
             return r
     return 0
 
 
-def winning_move(board: list, piece: int) -> bool:
-    """Check if the specified piece has won.
+def evaluate_window(window: list, token: int) -> int:
+    """Evaluate the score of a token in the window.
 
     Args:
     ----
-    board (list): 2D array of zeros
-    piece (int): piece to check
+    window (list): list of 4 cells
+    token (int): token to evaluate
 
     Returns:
     -------
-    bool: True if the piece has won, False otherwise
+    int: score of the token
+    """
+    score = 0
+    opp_token = HUMAN_TOKEN if token == AI_TOKEN else AI_TOKEN
+
+    if window.count(token) == SCORE_4:
+        score += 100
+    elif window.count(token) == SCORE_3 and window.count(0) == SCORE_1:
+        score += 5
+    elif window.count(token) == SCORE_2 and window.count(0) == SCORE_2:
+        score += 2
+
+    if window.count(opp_token) == SCORE_3 and window.count(0) == SCORE_1:
+        score -= 4
+
+    return score
+
+
+def score_position(wall: list, token: int) -> int:
+    """Score the wall for the given token.
+
+    Args:
+    ----
+    wall (list): 2D array of zeros
+    token (int): token to score
+
+    Returns:
+    -------
+    int: score of the token
+    """
+    score = 0
+
+    # Center column
+    center_array = [int(row[COLUMN_COUNT // 2]) for row in wall]
+    center_count = center_array.count(token)
+    score += center_count * 3
+
+    # Horizontal
+    for r in range(ROW_COUNT):
+        row_array = [int(i) for i in wall[r]]
+        for c in range(COLUMN_COUNT - 3):
+            window = row_array[c : c + WALL_LENGTH]
+            score += evaluate_window(window, token)
+
+    # Vertical
+    for c in range(COLUMN_COUNT):
+        col_array = [int(row[c]) for row in wall]
+        for r in range(ROW_COUNT - 3):
+            window = col_array[r : r + WALL_LENGTH]
+            score += evaluate_window(window, token)
+
+    # Positive diagonal
+    for r in range(ROW_COUNT - 3):
+        for c in range(COLUMN_COUNT - 3):
+            window = [wall[r + i][c + i] for i in range(WALL_LENGTH)]
+            score += evaluate_window(window, token)
+
+    # Negative diagonal
+    for r in range(ROW_COUNT - 3):
+        for c in range(3, COLUMN_COUNT):
+            window = [wall[r + i][c - i] for i in range(WALL_LENGTH)]
+            score += evaluate_window(window, token)
+
+    return score
+
+
+def is_winner(wall: list, token: int) -> bool:
+    """Check if the specified token has won.
+
+    Args:
+    ----
+    wall (list): 2D array of zeros
+    token (int): token to check
+
+    Returns:
+    -------
+    bool: True if the token has won, False otherwise
     """
     for c in range(COLUMN_COUNT - 3):
         for r in range(ROW_COUNT):
             if (
-                board[r][c] == piece
-                and board[r][c + 1] == piece
-                and board[r][c + 2] == piece
-                and board[r][c + 3] == piece
+                wall[r][c] == token
+                and wall[r][c + 1] == token
+                and wall[r][c + 2] == token
+                and wall[r][c + 3] == token
             ):
                 return True
 
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT - 3):
             if (
-                board[r][c] == piece
-                and board[r + 1][c] == piece
-                and board[r + 2][c] == piece
-                and board[r + 3][c] == piece
+                wall[r][c] == token
+                and wall[r + 1][c] == token
+                and wall[r + 2][c] == token
+                and wall[r + 3][c] == token
             ):
                 return True
 
     for c in range(COLUMN_COUNT - 3):
         for r in range(ROW_COUNT - 3):
             if (
-                board[r][c] == piece
-                and board[r + 1][c + 1] == piece
-                and board[r + 2][c + 2] == piece
-                and board[r + 3][c + 3] == piece
+                wall[r][c] == token
+                and wall[r + 1][c + 1] == token
+                and wall[r + 2][c + 2] == token
+                and wall[r + 3][c + 3] == token
             ):
                 return True
 
     for c in range(COLUMN_COUNT - 3):
         for r in range(3, ROW_COUNT):
             if (
-                board[r][c] == piece
-                and board[r - 1][c + 1] == piece
-                and board[r - 2][c + 2] == piece
-                and board[r - 3][c + 3] == piece
+                wall[r][c] == token
+                and wall[r - 1][c + 1] == token
+                and wall[r - 2][c + 2] == token
+                and wall[r - 3][c + 3] == token
             ):
                 return True
     return False
 
 
-def evaluate_window(window: list, piece: int) -> int:
-    """Evaluate the score of a piece in the window.
+def is_slot_availabe(wall: list, col: int) -> bool:
+    """Check if a token can be dropped in the specified column.
 
     Args:
     ----
-    window (list): list of 4 cells
-    piece (int): piece to evaluate
+    wall (list): 2D array of zeros
+    col (int): column index
 
     Returns:
     -------
-    int: score of the piece
+    bool: True if the token can be dropped, False otherwise
     """
-    score = 0
-    opp_piece = HUMAN_TOKEN if piece == AI_TOKEN else AI_TOKEN
-
-    if window.count(piece) == SCORE_4:
-        score += 100
-    elif window.count(piece) == SCORE_3 and window.count(0) == SCORE_1:
-        score += 5
-    elif window.count(piece) == SCORE_2 and window.count(0) == SCORE_2:
-        score += 2
-
-    if window.count(opp_piece) == SCORE_3 and window.count(0) == SCORE_1:
-        score -= 4
-
-    return score
+    return wall[ROW_COUNT - 1][col] == 0
 
 
-def score_position(board: list, piece: int) -> int:
-    """Score the board for the specified piece.
+def get_available_slots(wall: list) -> list[int]:
+    """Get the valid slots to drop a token.
 
     Args:
     ----
-    board (list): 2D array of zeros
-    piece (int): piece to score
+    wall (list): 2D array of zeros
 
     Returns:
     -------
-    int: score of the piece
+    list: list of valid locations
     """
-    score = 0
-
-    # Score center column
-    center_array = [int(row[COLUMN_COUNT // 2]) for row in board]
-    center_count = center_array.count(piece)
-    score += center_count * 3
-
-    # Score horizontal
-    for r in range(ROW_COUNT):
-        row_array = [int(i) for i in board[r]]
-        for c in range(COLUMN_COUNT - 3):
-            window = row_array[c : c + WINDOW_LENGTH]
-            score += evaluate_window(window, piece)
-
-    # Score vertical
-    for c in range(COLUMN_COUNT):
-        col_array = [int(row[c]) for row in board]
-        for r in range(ROW_COUNT - 3):
-            window = col_array[r : r + WINDOW_LENGTH]
-            score += evaluate_window(window, piece)
-
-    # Score positive diagonal
-    for r in range(ROW_COUNT - 3):
-        for c in range(COLUMN_COUNT - 3):
-            window = [board[r + i][c + i] for i in range(WINDOW_LENGTH)]
-            score += evaluate_window(window, piece)
-
-    # Score negative diagonal
-    for r in range(ROW_COUNT - 3):
-        for c in range(3, COLUMN_COUNT):
-            window = [board[r + i][c - i] for i in range(WINDOW_LENGTH)]
-            score += evaluate_window(window, piece)
-
-    return score
+    return [col for col in range(COLUMN_COUNT) if is_slot_availabe(wall, col)]
 
 
-def is_terminal_node(board: list) -> bool:
+def is_final_node(wall: list) -> bool:
     """Check if the game is over.
 
     Args:
     ----
-    board (list): 2D array of zeros
+    wall (list): 2D array of zeros
 
     Returns:
     -------
     bool: True if the game is over, False otherwise
     """
     return (
-        winning_move(board, HUMAN_TOKEN)
-        or winning_move(board, AI_TOKEN)
-        or len(get_valid_locations(board)) == 0
+        is_winner(wall, HUMAN_TOKEN)
+        or is_winner(wall, AI_TOKEN)
+        or len(get_available_slots(wall)) == 0
     )
 
 
-def get_valid_locations(board: list) -> list[int]:
-    """Get the valid locations to drop a piece.
-
-    Args:
-    ----
-    board (list): 2D array of zeros
-
-    Returns:
-    -------
-    list: list of valid locations
-    """
-    return [col for col in range(COLUMN_COUNT) if is_valid_location(board, col)]
-
-
 def minimax(
-    board: list,
+    wall: list,
     depth: int,
     alpha: int,
     beta: int,
@@ -248,7 +254,7 @@ def minimax(
 
     Args:
     ----
-    board (list): 2D array of zeros
+    wall (list): 2D array of zeros
     depth (int): depth of the search
     alpha (int): alpha value
     beta (int): beta value
@@ -258,27 +264,26 @@ def minimax(
     -------
     tuple: best column to play and the score
     """
-    valid_locations = get_valid_locations(board)
-    is_terminal = is_terminal_node(board)
+    valid_locations = get_available_slots(wall)
+    is_terminal = is_final_node(wall)
     if depth == 0 or is_terminal:
         if is_terminal:
-            if winning_move(board, AI_TOKEN):
+            if is_winner(wall, AI_TOKEN):
                 return (None, 100000000000000)
-            elif winning_move(board, HUMAN_TOKEN):
+            elif is_winner(wall, HUMAN_TOKEN):
                 return (None, -10000000000000)
-            else:  # Game is over, no more valid moves
+            else:
                 return (None, 0)
-        else:  # Depth is zero
-            return (None, score_position(board, AI_TOKEN))
+        else:
+            return (None, score_position(wall, AI_TOKEN))
     if maximizing_player:
         value = -math.inf
         column = random.choice(valid_locations)
         for col in valid_locations:
-            row = get_next_open_row(board, col)
-            drop_piece(board, row, col, AI_TOKEN)
-            new_score = minimax(board, depth - 1, alpha, beta, False)[1]
-            # Undo the move
-            board[row][col] = 0
+            row = get_next_open_row(wall, col)
+            drop_token(wall, row, col, AI_TOKEN)
+            new_score = minimax(wall, depth - 1, alpha, beta, False)[1]
+            wall[row][col] = 0
             if new_score > value:
                 value = new_score
                 column = col
@@ -286,16 +291,14 @@ def minimax(
             if alpha >= beta:
                 break
         return column, value
-
-    else:  # Minimizing player
+    else:
         value = math.inf
         column = random.choice(valid_locations)
         for col in valid_locations:
-            row = get_next_open_row(board, col)
-            drop_piece(board, row, col, HUMAN_TOKEN)
-            new_score = minimax(board, depth - 1, alpha, beta, True)[1]
-            # Undo the move
-            board[row][col] = 0
+            row = get_next_open_row(wall, col)
+            drop_token(wall, row, col, HUMAN_TOKEN)
+            new_score = minimax(wall, depth - 1, alpha, beta, True)[1]
+            wall[row][col] = 0
             if new_score < value:
                 value = new_score
                 column = col
@@ -305,67 +308,23 @@ def minimax(
         return column, value
 
 
-def pick_best_move(board: list, piece: int) -> int:
-    """Pick the best move for the specified piece.
+
+
+def print_wall(wall: list) -> None:
+    """Print the wall on the console.
 
     Args:
     ----
-    board (list): 2D array of zeros
-    piece (int): piece to play
-
-    Returns:
-    -------
-    int: best column to play
-    """
-    valid_locations = get_valid_locations(board)
-    best_score = -10000
-    best_col = random.choice(valid_locations)
-    for col in valid_locations:
-        row = get_next_open_row(board, col)
-        temp_board = board.copy()
-        drop_piece(temp_board, row, col, piece)
-        score = score_position(temp_board, piece)
-        if score > best_score:
-            best_score = score
-            best_col = col
-
-    return best_col
-
-
-def total_points(board: list) -> int:
-    """Get the total points of the board.
-
-    Args:
-    ----
-    board (list): 2D array of zeros
-
-    Returns:
-    -------
-    int: total points of the board
-    """
-    total = 0
-    for row in board:
-        for cell in row:
-            if cell in (HUMAN_TOKEN, AI_TOKEN):
-                total += 1
-    return total
-
-
-def print_board(board: list) -> None:
-    """Print the board on the console.
-
-    Args:
-    ----
-    board (list): 2D array of zeros
+    wall (list): 2D array of zeros
 
     Returns:
     -------
     None
     """
-    flipped_board = list(reversed(board))
+    flipped_wall = list(reversed(wall))
     col_nums = [str(i + 1) for i in range(COLUMN_COUNT)]
     formatted_col_nums = [" " + num.rjust(2) for num in col_nums]
-    for row in flipped_board:
+    for row in flipped_wall:
         row_repr = []
         for cell in row:
             if cell == HUMAN_TOKEN:
