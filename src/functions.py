@@ -1,8 +1,6 @@
-import copy
 import math
 import random
 
-from colorama import Fore, Style
 from constants import (
     AI_TOKEN,
     COLUMN_COUNT,
@@ -14,6 +12,16 @@ from constants import (
     SCORE_4,
     WALL_LENGTH,
 )
+
+
+def create_wall() -> list:
+    """Create a 2D array of zeros.
+
+    Returns
+    -------
+    list: 2D array of zeros
+    """
+    return [[0 for _ in range(COLUMN_COUNT)] for _ in range(ROW_COUNT)]
 
 
 def total_points(wall: list) -> int:
@@ -306,32 +314,3 @@ def minimax(
             if alpha >= beta:
                 break
         return column, value
-
-
-
-
-def print_wall(wall: list) -> None:
-    """Print the wall on the console.
-
-    Args:
-    ----
-    wall (list): 2D array of zeros
-
-    Returns:
-    -------
-    None
-    """
-    flipped_wall = list(reversed(wall))
-    col_nums = [str(i + 1) for i in range(COLUMN_COUNT)]
-    formatted_col_nums = [" " + num.rjust(2) for num in col_nums]
-    for row in flipped_wall:
-        row_repr = []
-        for cell in row:
-            if cell == HUMAN_TOKEN:
-                row_repr.append(Fore.CYAN + "X" + Style.RESET_ALL)
-            elif cell == AI_TOKEN:
-                row_repr.append(Fore.MAGENTA + "O" + Style.RESET_ALL)
-            else:
-                row_repr.append(" ")
-        print("".join(" | " + cell.center(2 - 1) for cell in row_repr) + " |  ")
-    print(" " + " ".join(formatted_col_nums))
