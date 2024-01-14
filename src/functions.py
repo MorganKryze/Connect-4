@@ -2,10 +2,10 @@ import math
 import random
 
 from constants import (
-    AI_TOKEN,
     COLUMNS_COUNT,
-    HUMAN_TOKEN,
     MAXIMUM_TOKEN,
+    PLAYER_1_TOKEN,
+    PLAYER_2_TOKEN,
     ROWS_COUNT,
     SCORE_1,
     SCORE_2,
@@ -24,6 +24,18 @@ def create_wall() -> list:
     """
     return [[0 for _ in range(COLUMNS_COUNT)] for _ in range(ROWS_COUNT)]
 
+def switch_turn(turn: int) -> int:
+    """Switch the turn.
+
+    Args:
+    ----
+    turn (int): current turn
+
+    Returns:
+    -------
+    int: new turn
+    """
+    return PLAYER_1_TOKEN if turn == PLAYER_2_TOKEN else PLAYER_2_TOKEN
 
 def drop_token(wall: list, row: int, col: int, token: int) -> list:
     """Drop a token in the wall at the specified location.
@@ -56,7 +68,7 @@ def evaluate_wall(wall: list, token: int) -> int:
     int: score of the token
     """
     score = 0
-    opposite_token = HUMAN_TOKEN if token == AI_TOKEN else AI_TOKEN
+    opposite_token = PLAYER_1_TOKEN if token == PLAYER_2_TOKEN else PLAYER_2_TOKEN
 
     token_count = wall.count(token)
     empty_count = wall.count(0)
@@ -240,20 +252,20 @@ def minimax(
     is_terminal = is_final_node(wall)
     if depth == 0 or is_terminal:
         if is_terminal:
-            if is_winner(wall, AI_TOKEN):
+            if is_winner(wall, PLAYER_2_TOKEN):
                 return (None, 100000000000000)
-            elif is_winner(wall, HUMAN_TOKEN):
+            elif is_winner(wall, PLAYER_1_TOKEN):
                 return (None, -10000000000000)
             else:
                 return (None, 0)
         else:
-            return (None, score_position(wall, AI_TOKEN))
+            return (None, score_position(wall, PLAYER_2_TOKEN))
     if maximizing_player:
         value = -math.inf
         column = random.choice(valid_locations)
         for col in valid_locations:
             row = get_available_slot(wall, col)
-            drop_token(wall, row, col, AI_TOKEN)
+            drop_token(wall, row, col, PLAYER_2_TOKEN)
             new_score = minimax(wall, depth - 1, alpha, beta, False)[1]
             wall[row][col] = 0
             if new_score > value:
@@ -269,7 +281,7 @@ def minimax(
         column = random.choice(valid_locations)
         for col in valid_locations:
             row = get_available_slot(wall, col)
-            drop_token(wall, row, col, HUMAN_TOKEN)
+            drop_token(wall, row, col, PLAYER_1_TOKEN)
             new_score = minimax(wall, depth - 1, alpha, beta, True)[1]
             wall[row][col] = 0
             if new_score < value:
@@ -293,8 +305,8 @@ def is_final_node(wall: list) -> bool:
     bool: True if the game is over, False otherwise
     """
     return (
-        is_winner(wall, HUMAN_TOKEN)
-        or is_winner(wall, AI_TOKEN)
+        is_winner(wall, PLAYER_1_TOKEN)
+        or is_winner(wall, PLAYER_2_TOKEN)
         or len(get_available_slots(wall)) == 0
     )
 
@@ -311,6 +323,6 @@ def are_all_token_on_the_wall(wall: list) -> bool:
     bool: True if all the tokens have been dropped, False otherwise
     """
     return (
-        sum(cell in (HUMAN_TOKEN, AI_TOKEN) for row in wall for cell in row)
+        sum(cell in (PLAYER_1_TOKEN, PLAYER_2_TOKEN) for row in wall for cell in row)
         == MAXIMUM_TOKEN
     )

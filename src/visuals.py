@@ -1,5 +1,5 @@
 from blessed import Terminal
-from constants import AI_TOKEN, COLUMNS_COUNT, HUMAN_TOKEN
+from constants import COLUMNS_COUNT, PLAYER_1_TOKEN, PLAYER_2_TOKEN
 
 term = Terminal()
 
@@ -57,6 +57,9 @@ def display_screen(selection: int, menu: list, question: str) -> None:
     """
     with term.hidden_cursor():
         print(term.clear())
+        print()
+        print("[ Connect Four: Configuration ] ")
+        print()
         print(question)
         print()
 
@@ -92,9 +95,9 @@ def print_wall(wall: list, turn: int) -> None:
     for i, row in enumerate(flipped_wall):
         row_repr = []
         for cell in row:
-            if cell == HUMAN_TOKEN:
+            if cell == PLAYER_1_TOKEN:
                 row_repr.append(term.red("🔴"))
-            elif cell == AI_TOKEN:
+            elif cell == PLAYER_2_TOKEN:
                 row_repr.append(term.yellow("🟡"))
             else:
                 row_repr.append(" ")
@@ -113,6 +116,7 @@ def print_statistics(
     total_time_player_2: float,
     player_1_name: str,
     player_2_name: str,
+    result_of_the_game: str,
 ) -> None:
     """Print the statistics.
 
@@ -124,6 +128,7 @@ def print_statistics(
     total_time_player_2 (float): total time for player 2
     player_1_name (str): name of player 1
     player_2_name (str): name of player 2
+    result_of_the_game (str): result of the game
 
     Returns:
     -------
@@ -138,13 +143,17 @@ def print_statistics(
         len(
             f" Total time for {player_2_name}: {total_time_player_2:.2f} seconds",
         ),
+        len(" Result: " + result_of_the_game),
     )
-
     print()
-    # Print the statistics in a box with the calculated maximum length
+    print(" ───────────────────── [ End of the game] ────────────────────")
+    print()
+
     print("┌" + "─" * max_length + "┐")
     print("│" + " Statistics".ljust(max_length) + "│")
     print("│" + "─" * max_length + "│")
+    print("│" + (" Result: " + result_of_the_game).ljust(max_length) + "│")
+    print("│" + (" ").ljust(max_length) + "│")
     print("│" + (" Token left: " + str(remaining_tokens)).ljust(max_length) + "│")
     print(
         "│" + (" Last turn number: " + str(turn_count)).ljust(max_length) + "│",
