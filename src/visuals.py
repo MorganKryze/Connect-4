@@ -1,6 +1,5 @@
 from blessed import Terminal
-from colorama import Fore, Style
-from constants import AI_TOKEN, COLUMN_COUNT, HUMAN_TOKEN
+from constants import AI_TOKEN, COLUMNS_COUNT, HUMAN_TOKEN
 
 term = Terminal()
 
@@ -83,28 +82,28 @@ def print_wall(wall: list, turn: int) -> None:
     None
     """
     flipped_wall = list(reversed(wall))
-    col_nums = [str(i + 1) for i in range(COLUMN_COUNT)]
+    col_nums = [str(i + 1) for i in range(COLUMNS_COUNT)]
     print()
     print(f" ──────────────────────── [ turn {turn} ] ────────────────────────")
     print()
     formatted_col_nums = ["  " + num.rjust(2) for num in col_nums]
     print(" " + " ".join(formatted_col_nums))
-    print(" " + "├" + "┼".join("────" for _ in range(COLUMN_COUNT)) + "┤")
+    print(" " + "├" + "┼".join("────" for _ in range(COLUMNS_COUNT)) + "┤")
     for i, row in enumerate(flipped_wall):
         row_repr = []
         for cell in row:
             if cell == HUMAN_TOKEN:
-                row_repr.append(Fore.RED + "🔴" + Style.RESET_ALL)
+                row_repr.append(term.red("🔴"))
             elif cell == AI_TOKEN:
-                row_repr.append(Fore.YELLOW + "🟡" + Style.RESET_ALL)
+                row_repr.append(term.yellow("🟡"))
             else:
                 row_repr.append(" ")
         print(
             " │" + "│".join(" " + cell.center(3 - 1) + " " for cell in row_repr) + "│",
         )
         if i < len(flipped_wall) - 1:
-            print(" " + "├" + "┼".join("────" for _ in range(COLUMN_COUNT)) + "┤")
-    print(" " + "└" + "┴".join("────" for _ in range(COLUMN_COUNT)) + "┘")
+            print(" " + "├" + "┼".join("────" for _ in range(COLUMNS_COUNT)) + "┤")
+    print(" " + "└" + "┴".join("────" for _ in range(COLUMNS_COUNT)) + "┘")
 
 
 def print_statistics(
@@ -131,35 +130,35 @@ def print_statistics(
     None
     """
     max_length = max(
-        len(" Nombre de tours passés : " + str(turn_count)),
-        len(" Jetons restants : " + str(remaining_tokens)),
+        len(" Token left: " + str(remaining_tokens)),
+        len(" Last turn number: " + str(turn_count)),
         len(
-            f" Temps total pour {player_1_name} : {total_time_player_1:.2f} secondes",
+            f" Total time for {player_1_name}: {total_time_player_1:.2f} seconds",
         ),
         len(
-            f" Temps total pour {player_2_name} : {total_time_player_2:.2f} secondes",
+            f" Total time for {player_2_name}: {total_time_player_2:.2f} seconds",
         ),
     )
 
     print()
     # Print the statistics in a box with the calculated maximum length
     print("┌" + "─" * max_length + "┐")
-    print("│" + " Statistiques de fin de jeu".ljust(max_length) + "│")
+    print("│" + " Statistics".ljust(max_length) + "│")
     print("│" + "─" * max_length + "│")
+    print("│" + (" Token left: " + str(remaining_tokens)).ljust(max_length) + "│")
     print(
-        "│" + (" Nombre de tours passés : " + str(turn_count)).ljust(max_length) + "│",
+        "│" + (" Last turn number: " + str(turn_count)).ljust(max_length) + "│",
     )
-    print("│" + (" Jetons restants : " + str(remaining_tokens)).ljust(max_length) + "│")
     print(
         "│"
-        + f" Temps total pour {player_1_name} : {total_time_player_1:.2f} secondes".ljust(
+        + f" Total time for {player_1_name}: {total_time_player_1:.2f} seconds".ljust(
             max_length,
         )
         + "│",
     )
     print(
         "│"
-        + f" Temps total pour {player_2_name} : {total_time_player_2:.2f} secondes".ljust(
+        + f" Total time for {player_2_name}: {total_time_player_2:.2f} seconds".ljust(
             max_length,
         )
         + "│",

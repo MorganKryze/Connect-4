@@ -17,6 +17,10 @@ from visuals import print_menu, print_statistics, print_wall
 
 if __name__ == "__main__":
     wall = create_wall()
+    total_time_player_1 = 0
+    total_time_player_2 = 0
+    remaining_tokens = 42
+    turn_count = 0
     turn = 0
 
     choice = print_menu("Choisissez le mode de jeu :", [GAME_MODE_1, GAME_MODE_2])
@@ -28,21 +32,17 @@ if __name__ == "__main__":
     else:
         turn = random.choice([HUMAN_TOKEN, AI_TOKEN])
 
-    total_time_player_1 = 0
-    total_time_player_2 = 0
-    remaining_tokens = 42
-    turn_count = 0
+
+    print_wall(wall, turn_count)
 
     game_over = False
     while not game_over:
         start_time = time.time()
 
-        # Vérifier si le total des points est de 42
         if total_points(wall) == MAXIMUM_TOKEN:
             print("La partie est terminée, le total de points est de 42.")
             break
 
-        print_wall(wall, turn_count + 1)
         # Player 1 (Human) input
         if turn == HUMAN_TOKEN and game_mode == GAME_MODE_1:
             col = int(input("Joueur 1, fait ton choix entre (1-12): ")) - 1
@@ -56,8 +56,8 @@ if __name__ == "__main__":
                     game_over = True
 
                 turn = AI_TOKEN
+                print_wall(wall, turn_count + 1)
 
-        # AI Player input
         elif turn == AI_TOKEN and not game_over and game_mode == GAME_MODE_1:
             col, _ = minimax(wall, 4, -math.inf, math.inf, True)
 
@@ -70,9 +70,10 @@ if __name__ == "__main__":
                     game_over = True
 
                 turn = HUMAN_TOKEN if game_mode == GAME_MODE_1 else AI_TOKEN
+                print_wall(wall, turn_count + 1)
 
         elif game_mode == GAME_MODE_2:
-            if turn == HUMAN_TOKEN:  # IA2 input
+            if turn == HUMAN_TOKEN:
                 col, _ = minimax(wall, 4, -math.inf, math.inf, True)
 
                 if is_slot_availabe(wall, col):
@@ -84,13 +85,14 @@ if __name__ == "__main__":
                         game_over = True
 
                     turn = AI_TOKEN
+                    print_wall(wall, turn_count + 1)
                     print(
                         Fore.CYAN + "IA2 a joué la colonne :" + Style.RESET_ALL,
                         col + 1,
                     )
 
-            elif turn == AI_TOKEN and not game_over:  # AI1 Player input
-                col, _ = minimax(wall, 4, -math.inf, math.inf, True)
+            elif turn == AI_TOKEN and not game_over:
+                col, _ = minimax(wall, 1, -math.inf, math.inf, True)
 
                 if is_slot_availabe(wall, col):
                     row = get_next_open_row(wall, col)
@@ -101,6 +103,7 @@ if __name__ == "__main__":
                         game_over = True
 
                     turn = HUMAN_TOKEN
+                    print_wall(wall, turn_count + 1)
                     print(
                         Fore.MAGENTA + "IA1 a joué la colonne :" + Style.RESET_ALL,
                         col + 1,
@@ -109,9 +112,9 @@ if __name__ == "__main__":
         elapsed_time = time.time() - start_time
 
         if turn == AI_TOKEN:
-            total_time_player_1 += elapsed_time
-        else:
             total_time_player_2 += elapsed_time
+        else:
+            total_time_player_1 += elapsed_time
 
         remaining_tokens -= 1
         turn_count += 1
