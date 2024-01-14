@@ -3,15 +3,15 @@ import random
 import time
 
 from colorama import Fore, Style
-from constants import AI_TOKEN, GAME_MODE_1, GAME_MODE_2, HUMAN_TOKEN, MAXIMUM_TOKEN
+from constants import AI_TOKEN, GAME_MODE_1, GAME_MODE_2, HUMAN_TOKEN
 from functions import (
+    are_all_token_on_the_wall,
     create_wall,
     drop_token,
-    get_next_open_row,
+    get_available_slot,
     is_slot_availabe,
     is_winner,
     minimax,
-    total_points,
 )
 from visuals import print_menu, print_statistics, print_wall
 
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     while not game_over:
         start_time = time.time()
 
-        if total_points(wall) == MAXIMUM_TOKEN:
+        if are_all_token_on_the_wall(wall):
             print("La partie est terminée, le total de points est de 42.")
             break
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
             col = int(input("Joueur 1, fait ton choix entre (1-12): ")) - 1
 
             if is_slot_availabe(wall, col):
-                row = get_next_open_row(wall, col)
+                row = get_available_slot(wall, col)
                 drop_token(wall, row, col, HUMAN_TOKEN)
 
                 if is_winner(wall, HUMAN_TOKEN):
@@ -62,7 +62,7 @@ if __name__ == "__main__":
             col, _ = minimax(wall, 4, -math.inf, math.inf, True)
 
             if is_slot_availabe(wall, col):
-                row = get_next_open_row(wall, col)
+                row = get_available_slot(wall, col)
                 drop_token(wall, row, col, AI_TOKEN)
 
                 if is_winner(wall, AI_TOKEN):
@@ -77,7 +77,7 @@ if __name__ == "__main__":
                 col, _ = minimax(wall, 4, -math.inf, math.inf, True)
 
                 if is_slot_availabe(wall, col):
-                    row = get_next_open_row(wall, col)
+                    row = get_available_slot(wall, col)
                     drop_token(wall, row, col, HUMAN_TOKEN)
 
                     if is_winner(wall, HUMAN_TOKEN):
@@ -95,7 +95,7 @@ if __name__ == "__main__":
                 col, _ = minimax(wall, 1, -math.inf, math.inf, True)
 
                 if is_slot_availabe(wall, col):
-                    row = get_next_open_row(wall, col)
+                    row = get_available_slot(wall, col)
                     drop_token(wall, row, col, AI_TOKEN)
 
                     if is_winner(wall, AI_TOKEN):

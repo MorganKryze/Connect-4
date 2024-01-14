@@ -5,6 +5,7 @@ from constants import (
     AI_TOKEN,
     COLUMNS_COUNT,
     HUMAN_TOKEN,
+    MAXIMUM_TOKEN,
     ROWS_COUNT,
     SCORE_1,
     SCORE_2,
@@ -22,20 +23,6 @@ def create_wall() -> list:
     list: 2D array of zeros
     """
     return [[0 for _ in range(COLUMNS_COUNT)] for _ in range(ROWS_COUNT)]
-
-
-def total_points(wall: list) -> int:
-    """Get the total points of the wall.
-
-    Args:
-    ----
-    wall (list): 2D array of zeros
-
-    Returns:
-    -------
-    int: total points of the wall
-    """
-    return sum(cell in (HUMAN_TOKEN, AI_TOKEN) for row in wall for cell in row)
 
 
 def drop_token(wall: list, row: int, col: int, token: int) -> list:
@@ -56,30 +43,12 @@ def drop_token(wall: list, row: int, col: int, token: int) -> list:
     return wall
 
 
-def get_next_open_row(wall: list, col: int) -> int:
-    """Get the next open row in the specified column.
+def evaluate_wall(wall: list, token: int) -> int:
+    """Evaluate the score of a token in the wall.
 
     Args:
     ----
-    wall (list): 2D array of zeros
-    col (int): column index
-
-    Returns:
-    -------
-    int: index of the next open row
-    """
-    for r in range(ROWS_COUNT):
-        if wall[r][col] == 0:
-            return r
-    return 0
-
-
-def evaluate_window(window: list, token: int) -> int:
-    """Evaluate the score of a token in the window.
-
-    Args:
-    ----
-    window (list): list of 4 cells
+    wall (list): list of 4 cells
     token (int): token to evaluate
 
     Returns:
@@ -87,18 +56,19 @@ def evaluate_window(window: list, token: int) -> int:
     int: score of the token
     """
     score = 0
-    opp_token = HUMAN_TOKEN if token == AI_TOKEN else AI_TOKEN
+    opposite_token = HUMAN_TOKEN if token == AI_TOKEN else AI_TOKEN
 
-    if window.count(token) == SCORE_4:
+    token_count = wall.count(token)
+    empty_count = wall.count(0)
+
+    if token_count == SCORE_4:
         score += 100
-    elif window.count(token) == SCORE_3 and window.count(0) == SCORE_1:
+    elif token_count == SCORE_3 and empty_count == SCORE_1:
         score += 5
-    elif window.count(token) == SCORE_2 and window.count(0) == SCORE_2:
+    elif token_count == SCORE_2 and empty_count == SCORE_2:
         score += 2
-
-    if window.count(opp_token) == SCORE_3 and window.count(0) == SCORE_1:
+    elif wall.count(opposite_token) == SCORE_3 and empty_count == SCORE_1:
         score -= 4
-
     return score
 
 
@@ -116,36 +86,30 @@ def score_position(wall: list, token: int) -> int:
     """
     score = 0
 
-    # Score center column
     center_array = [int(row[COLUMNS_COUNT // 2]) for row in wall]
     center_count = center_array.count(token)
     score += center_count * 3
 
-    # Score horizontal
     for r in range(ROWS_COUNT):
-        row_array = [int(i) for i in wall[r]]
+        row_array = wall[r]
         for c in range(COLUMNS_COUNT - 3):
             window = row_array[c : c + WALL_LENGTH]
-            score += evaluate_window(window, token)
+            score += evaluate_wall(window, token)
 
-    # Score vertical
     for c in range(COLUMNS_COUNT):
-        col_array = [int(row[c]) for row in wall]
+        col_array = [row[c] for row in wall]
         for r in range(ROWS_COUNT - 3):
             window = col_array[r : r + WALL_LENGTH]
-            score += evaluate_window(window, token)
+            score += evaluate_wall(window, token)
 
-    # Score positive diagonal
     for r in range(ROWS_COUNT - 3):
         for c in range(COLUMNS_COUNT - 3):
             window = [wall[r + i][c + i] for i in range(WALL_LENGTH)]
-            score += evaluate_window(window, token)
-
-    # Score negative diagonal
-    for r in range(ROWS_COUNT - 3):
-        for c in range(3, COLUMNS_COUNT):
-            window = [wall[r + i][c - i] for i in range(WALL_LENGTH)]
-            score += evaluate_window(window, token)
+            score += evaluate_wall(window, token)
+            diagonal_start = 3
+            if c >= diagonal_start:
+                window = [wall[r + i][c - i] for i in range(WALL_LENGTH)]
+                score += evaluate_wall(window, token)
 
     return score
 
@@ -233,22 +197,22 @@ def get_available_slots(wall: list) -> list[int]:
     return [col for col in range(COLUMNS_COUNT) if is_slot_availabe(wall, col)]
 
 
-def is_final_node(wall: list) -> bool:
-    """Check if the game is over.
+def get_available_slot(wall: list, col: int) -> int:
+    """Get the next available slot in the specified column.
 
     Args:
     ----
     wall (list): 2D array of zeros
+    col (int): column index
 
     Returns:
     -------
-    bool: True if the game is over, False otherwise
+    int: index of the next available slot in a row
     """
-    return (
-        is_winner(wall, HUMAN_TOKEN)
-        or is_winner(wall, AI_TOKEN)
-        or len(get_available_slots(wall)) == 0
-    )
+    for r in range(ROWS_COUNT):
+        if wall[r][col] == 0:
+            return r
+    return 0
 
 
 def minimax(
@@ -280,18 +244,17 @@ def minimax(
                 return (None, 100000000000000)
             elif is_winner(wall, HUMAN_TOKEN):
                 return (None, -10000000000000)
-            else:  # Game is over, no more valid moves
+            else:
                 return (None, 0)
-        else:  # Depth is zero
+        else:
             return (None, score_position(wall, AI_TOKEN))
     if maximizing_player:
         value = -math.inf
         column = random.choice(valid_locations)
         for col in valid_locations:
-            row = get_next_open_row(wall, col)
+            row = get_available_slot(wall, col)
             drop_token(wall, row, col, AI_TOKEN)
             new_score = minimax(wall, depth - 1, alpha, beta, False)[1]
-            # Undo the move
             wall[row][col] = 0
             if new_score > value:
                 value = new_score
@@ -301,14 +264,13 @@ def minimax(
                 break
         return column, value
 
-    else:  # Minimizing player
+    else:
         value = math.inf
         column = random.choice(valid_locations)
         for col in valid_locations:
-            row = get_next_open_row(wall, col)
+            row = get_available_slot(wall, col)
             drop_token(wall, row, col, HUMAN_TOKEN)
             new_score = minimax(wall, depth - 1, alpha, beta, True)[1]
-            # Undo the move
             wall[row][col] = 0
             if new_score < value:
                 value = new_score
@@ -317,3 +279,38 @@ def minimax(
             if alpha >= beta:
                 break
         return column, value
+
+
+def is_final_node(wall: list) -> bool:
+    """Check if the game is over.
+
+    Args:
+    ----
+    wall (list): 2D array of zeros
+
+    Returns:
+    -------
+    bool: True if the game is over, False otherwise
+    """
+    return (
+        is_winner(wall, HUMAN_TOKEN)
+        or is_winner(wall, AI_TOKEN)
+        or len(get_available_slots(wall)) == 0
+    )
+
+
+def are_all_token_on_the_wall(wall: list) -> bool:
+    """Check if all the tokens have been dropped.
+
+    Args:
+    ----
+    wall (list): 2D array of zeros
+
+    Returns:
+    -------
+    bool: True if all the tokens have been dropped, False otherwise
+    """
+    return (
+        sum(cell in (HUMAN_TOKEN, AI_TOKEN) for row in wall for cell in row)
+        == MAXIMUM_TOKEN
+    )
