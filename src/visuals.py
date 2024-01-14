@@ -85,7 +85,7 @@ def print_wall(wall: list, turn: int) -> None:
     None
     """
     flipped_wall = list(reversed(wall))
-    col_nums = [str(i + 1) for i in range(COLUMNS_COUNT)]
+    col_nums = [str(i) for i in range(COLUMNS_COUNT)]
     print()
     print(f" ──────────────────────── [ turn {turn} ] ────────────────────────")
     print()

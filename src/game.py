@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
         if game_mode == GAME_MODE_1:
             if turn == PLAYER_1_TOKEN:
-                col = int(input(f"{player_1_name}, Enter a column (1..12): ")) - 1
+                col = int(input(f"{player_1_name}, Enter a column (0..11): "))
 
                 if is_slot_availabe(wall, col):
                     row = get_available_slot(wall, col)
