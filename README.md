@@ -6,6 +6,10 @@
 
 ## Getting Started
 
+### Docs
+
+If you want to learn more about the project's flow, you can read the [docs](docs/flow.md) or the [minimax implementation](docs/minimax_implementation.md).
+
 ### Prerequisites
 
 - [Python 3.9+](https://www.python.org/downloads/)
