@@ -12,7 +12,7 @@ from functions import (
     create_wall,
     drop_token,
     get_available_slot,
-    is_slot_availabe,
+    is_slot_available,
     is_winner,
     minimax,
     switch_turn,
@@ -61,7 +61,7 @@ if __name__ == "__main__":
             if turn == PLAYER_1_TOKEN:
                 col = int(input(f"{player_1_name}, Enter a column (0..11): "))
 
-                if is_slot_availabe(wall, col):
+                if is_slot_available(wall, col):
                     row = get_available_slot(wall, col)
                     drop_token(wall, row, col, PLAYER_1_TOKEN)
 
@@ -71,9 +71,9 @@ if __name__ == "__main__":
                     )
 
             elif turn == PLAYER_2_TOKEN:
-                col, _ = minimax(wall, 4, -math.inf, math.inf, True)
+                col, _ = minimax(wall, 6, -math.inf, math.inf, True)
 
-                if is_slot_availabe(wall, col):
+                if is_slot_available(wall, col):
                     row = get_available_slot(wall, col)
                     drop_token(wall, row, col, PLAYER_2_TOKEN)
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
             if turn == PLAYER_1_TOKEN:
                 col, _ = minimax(wall, 4, -math.inf, math.inf, True)
 
-                if is_slot_availabe(wall, col):
+                if is_slot_available(wall, col):
                     row = get_available_slot(wall, col)
                     drop_token(wall, row, col, PLAYER_1_TOKEN)
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
             elif turn == PLAYER_2_TOKEN:
                 col, _ = minimax(wall, 1, -math.inf, math.inf, True)
 
-                if is_slot_availabe(wall, col):
+                if is_slot_available(wall, col):
                     row = get_available_slot(wall, col)
                     drop_token(wall, row, col, PLAYER_2_TOKEN)
 

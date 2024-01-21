@@ -180,7 +180,7 @@ def is_winner(wall: list, token: int) -> bool:
     return False
 
 
-def is_slot_availabe(wall: list, col: int) -> bool:
+def is_slot_available(wall: list, col: int) -> bool:
     """Check if a token can be dropped in the specified column.
 
     Args:
@@ -206,7 +206,7 @@ def get_available_slots(wall: list) -> list[int]:
     -------
     list: list of valid locations
     """
-    return [col for col in range(COLUMNS_COUNT) if is_slot_availabe(wall, col)]
+    return [col for col in range(COLUMNS_COUNT) if is_slot_available(wall, col)]
 
 
 def get_available_slot(wall: list, col: int) -> int:
