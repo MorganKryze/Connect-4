@@ -37,12 +37,11 @@ if __name__ == "__main__":
     if game_mode == GAME_MODE_1:
         player_1_name = "Human"
         player_2_name = "AI"
-        turn = PLAYER_1_TOKEN
     else:
-        player_1_name = "AI 1"
-        player_2_name = "AI 2"
-        turn = PLAYER_1_TOKEN
+        player_1_name = "AI"
+        player_2_name = "HUMAN"
 
+    turn = PLAYER_1_TOKEN
     while True:
         start_time = time.time()
         print_wall(wall, turn_count)
@@ -71,7 +70,7 @@ if __name__ == "__main__":
                     )
 
             elif turn == PLAYER_2_TOKEN:
-                col, _ = minimax(wall, 6, -math.inf, math.inf, True)
+                col, _ = minimax(wall, 5, -math.inf, math.inf, True)
 
                 if is_slot_available(wall, col):
                     row = get_available_slot(wall, col)
@@ -84,19 +83,7 @@ if __name__ == "__main__":
 
         elif game_mode == GAME_MODE_2:
             if turn == PLAYER_1_TOKEN:
-                col, _ = minimax(wall, 4, -math.inf, math.inf, True)
-
-                if is_slot_available(wall, col):
-                    row = get_available_slot(wall, col)
-                    drop_token(wall, row, col, PLAYER_1_TOKEN)
-
-                    print(
-                        term.red(f"{player_1_name} played the column:"),
-                        col + 1,
-                    )
-
-            elif turn == PLAYER_2_TOKEN:
-                col, _ = minimax(wall, 1, -math.inf, math.inf, True)
+                col, _ = minimax(wall, 5, -math.inf, math.inf, True)
 
                 if is_slot_available(wall, col):
                     row = get_available_slot(wall, col)
@@ -104,6 +91,18 @@ if __name__ == "__main__":
 
                     print(
                         term.yellow(f"{player_2_name} played the column:"),
+                        col + 1,
+                    )
+
+            elif turn == PLAYER_2_TOKEN:
+                col = int(input(f"{player_1_name}, Enter a column (0..11): "))
+
+                if is_slot_available(wall, col):
+                    row = get_available_slot(wall, col)
+                    drop_token(wall, row, col, PLAYER_1_TOKEN)
+
+                    print(
+                        term.red(f"{player_1_name} played the column:"),
                         col + 1,
                     )
 
