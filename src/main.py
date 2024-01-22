@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
                     print(
                         term.red(f"{player_1_name} played the column:"),
-                        col + 1,
+                        col,
                     )
 
             elif turn == PLAYER_2_TOKEN:
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
                     print(
                         term.yellow(f"{player_2_name} played the column:"),
-                        col + 1,
+                        col,
                     )
 
         elif game_mode == GAME_MODE_2:
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
                     print(
                         term.yellow(f"{player_2_name} played the column:"),
-                        col + 1,
+                        col,
                     )
 
             elif turn == PLAYER_2_TOKEN:
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
                     print(
                         term.red(f"{player_1_name} played the column:"),
-                        col + 1,
+                        col,
                     )
 
         elapsed_time = time.time() - start_time
