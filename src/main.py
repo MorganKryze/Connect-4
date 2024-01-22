@@ -122,11 +122,15 @@ if __name__ == "__main__":
             "seconds",
         )
 
+    average_time_player_1 = total_time_player_1 / (turn_count // 2)
+    average_time_player_2 = total_time_player_2 / (turn_count // 2)
     print_statistics(
         turn_count,
         remaining_tokens,
         total_time_player_1,
+        average_time_player_1,
         total_time_player_2,
+        average_time_player_2,
         player_1_name,
         player_2_name,
         result_of_game,

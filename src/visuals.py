@@ -113,7 +113,9 @@ def print_statistics(
     turn_count: int,
     remaining_tokens: int,
     total_time_player_1: float,
+    average_time_player_1: float,
     total_time_player_2: float,
+    average_time_player_2: float,
     player_1_name: str,
     player_2_name: str,
     result_of_the_game: str,
@@ -125,7 +127,9 @@ def print_statistics(
     turn_count (int): number of turns
     remaining_tokens (int): number of remaining tokens
     total_time_player_1 (float): total time for player 1
+    average_time_player_1 (float): average time for player 1
     total_time_player_2 (float): total time for player 2
+    average_time_player_2 (float): average time for player 2
     player_1_name (str): name of player 1
     player_2_name (str): name of player 2
     result_of_the_game (str): result of the game
@@ -141,7 +145,13 @@ def print_statistics(
             f" Total time for {player_1_name}: {total_time_player_1:.2f} seconds",
         ),
         len(
+            f" Average time for {player_1_name}: {average_time_player_1:.2f} seconds",
+        ),
+        len(
             f" Total time for {player_2_name}: {total_time_player_2:.2f} seconds",
+        ),
+        len(
+            f" Average time for {player_2_name}: {average_time_player_2:.2f} seconds",
         ),
         len(" Result: " + result_of_the_game),
     )
@@ -158,6 +168,7 @@ def print_statistics(
     print(
         "│" + (" Last turn number: " + str(turn_count)).ljust(max_length) + "│",
     )
+    print("│" + (" ").ljust(max_length) + "│")
     print(
         "│"
         + f" Total time for {player_1_name}: {total_time_player_1:.2f} seconds".ljust(
@@ -167,7 +178,22 @@ def print_statistics(
     )
     print(
         "│"
+        + f" Average time for {player_1_name}: {average_time_player_1:.2f} seconds".ljust(  # noqa: E501
+            max_length,
+        )
+        + "│",
+    )
+    print("│" + (" ").ljust(max_length) + "│")
+    print(
+        "│"
         + f" Total time for {player_2_name}: {total_time_player_2:.2f} seconds".ljust(
+            max_length,
+        )
+        + "│",
+    )
+    print(
+        "│"
+        + f" Average time for {player_2_name}: {average_time_player_2:.2f} seconds".ljust(  # noqa: E501
             max_length,
         )
         + "│",
